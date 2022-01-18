@@ -289,7 +289,7 @@ void Tiltrotor::update_mc_state()
 		_mc_yaw_weight = 1.0f;
 
 		// do thrust compensation only for legacy (static) allocation
-		if (_params->ctrl_alloc != 1) {
+		if (_param_sys_ctrl_alloc.get() != 1) {
 			_v_att_sp->thrust_body[2] = Tiltrotor::thrust_compensation_for_tilt();
 		}
 	}

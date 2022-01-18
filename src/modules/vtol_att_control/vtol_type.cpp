@@ -88,8 +88,8 @@ VtolType::VtolType(VtolAttitudeControl *att_controller) :
 
 bool VtolType::init()
 {
-	if (_params->ctrl_alloc != 1) {
-		const char *dev = _params->vt_mc_on_fmu ? PWM_OUTPUT1_DEVICE_PATH : PWM_OUTPUT0_DEVICE_PATH;
+	if (!_param_sys_ctrl_alloc.get()) {
+		const char *dev = _param_vt_mc_on_fmu.get() ? PWM_OUTPUT1_DEVICE_PATH : PWM_OUTPUT0_DEVICE_PATH;
 
 		int fd = px4_open(dev, 0);
 
@@ -125,8 +125,8 @@ bool VtolType::init()
 
 		px4_close(fd);
 
-		_main_motor_channel_bitmap = generate_bitmap_from_channel_numbers(_params->vtol_motor_id);
-		_alternate_motor_channel_bitmap = generate_bitmap_from_channel_numbers(_params->fw_motors_off);
+		_main_motor_channel_bitmap = generate_bitmap_from_channel_numbers(_param_vt_mot_id.get());
+		_alternate_motor_channel_bitmap = generate_bitmap_from_channel_numbers(_param_vt_fw_mot_offid.get());
 
 
 		// in order to get the main motors we take all motors and clear the alternate motor bits
@@ -333,7 +333,7 @@ void VtolType::check_quadchute_condition()
 
 bool VtolType::set_idle_mc()
 {
-	if (_params->ctrl_alloc == 1) {
+	if (_param_sys_ctrl_alloc.get() == 1) {
 		return true;
 	}
 
@@ -341,7 +341,7 @@ bool VtolType::set_idle_mc()
 	struct pwm_output_values pwm_values {};
 
 	for (int i = 0; i < num_outputs_max; i++) {
-		if (is_channel_set(i, generate_bitmap_from_channel_numbers(_params->vtol_motor_id))) {
+		if (is_channel_set(i, generate_bitmap_from_channel_numbers(_param_vt_mot_id.get()))) {
 			pwm_values.values[i] = pwm_value;
 
 		} else {
@@ -356,14 +356,14 @@ bool VtolType::set_idle_mc()
 
 bool VtolType::set_idle_fw()
 {
-	if (_params->ctrl_alloc == 1) {
+	if (_param_sys_ctrl_alloc.get() == 1) {
 		return true;
 	}
 
 	struct pwm_output_values pwm_values {};
 
 	for (int i = 0; i < num_outputs_max; i++) {
-		if (is_channel_set(i, generate_bitmap_from_channel_numbers(_params->vtol_motor_id))) {
+		if (is_channel_set(i, generate_bitmap_from_channel_numbers(_param_vt_mot_id.get()))) {
 			pwm_values.values[i] = PWM_DEFAULT_MIN;
 
 		} else {
@@ -378,7 +378,7 @@ bool VtolType::set_idle_fw()
 
 bool VtolType::apply_pwm_limits(struct pwm_output_values &pwm_values, pwm_limit_type type)
 {
-	const char *dev = _params->vt_mc_on_fmu ? PWM_OUTPUT1_DEVICE_PATH : PWM_OUTPUT0_DEVICE_PATH;
+	const char *dev = _param_vt_mc_on_fmu.get() ? PWM_OUTPUT1_DEVICE_PATH : PWM_OUTPUT0_DEVICE_PATH;
 
 	int fd = px4_open(dev, 0);
 
@@ -409,7 +409,7 @@ bool VtolType::apply_pwm_limits(struct pwm_output_values &pwm_values, pwm_limit_
 
 void VtolType::set_all_motor_state(const motor_state target_state, const int value)
 {
-	if (_params->ctrl_alloc == 1) {
+	if (_param_sys_ctrl_alloc.get() == 1) {
 		return;
 	}
 
@@ -419,7 +419,7 @@ void VtolType::set_all_motor_state(const motor_state target_state, const int val
 
 void VtolType::set_main_motor_state(const motor_state target_state, const int value)
 {
-	if (_params->ctrl_alloc == 1) {
+	if (_param_sys_ctrl_alloc.get() == 1) {
 		return;
 	}
 
@@ -433,7 +433,7 @@ void VtolType::set_main_motor_state(const motor_state target_state, const int va
 
 void VtolType::set_alternate_motor_state(const motor_state target_state, const int value)
 {
-	if (_params->ctrl_alloc == 1) {
+	if (_param_sys_ctrl_alloc.get() == 1) {
 		return;
 	}
 
