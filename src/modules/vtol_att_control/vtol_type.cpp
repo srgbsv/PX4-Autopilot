@@ -52,6 +52,7 @@ using namespace matrix;
 
 
 VtolType::VtolType(VtolAttitudeControl *att_controller) :
+	ModuleParams(nullptr),
 	_attc(att_controller),
 	_vtol_mode(mode::ROTARY_WING)
 {
@@ -229,10 +230,14 @@ float VtolType::update_and_get_backtransition_pitch_sp()
 	const float track = atan2f(_local_pos->vy, _local_pos->vx);
 	const float accel_body_forward = cosf(track) * _local_pos->ax + sinf(track) * _local_pos->ay;
 
-	// get accel error, positive means decelerating too slow, need to pitch up (must reverse dec_max, as it is a positive number)
-	const float accel_error_forward = _params->back_trans_dec_sp + accel_body_forward;
+	// increase the target deceleration setpoint provided to the controller by 20%
+	// to make overshooting the transition waypoint less likely in the presence of tracking errors
+	const float dec_sp = _param_vt_b_dec_mss.get() * 1.2f;
 
-	const float pitch_sp_new = _params->dec_to_pitch_ff * _params->back_trans_dec_sp + _accel_to_pitch_integ;
+	// get accel error, positive means decelerating too slow, need to pitch up (must reverse dec_max, as it is a positive number)
+	const float accel_error_forward = dec_sp + accel_body_forward;
+
+	const float pitch_sp_new = _params->dec_to_pitch_ff * dec_sp + _accel_to_pitch_integ;
 
 	float integrator_input = _params->dec_to_pitch_i * accel_error_forward;
 
