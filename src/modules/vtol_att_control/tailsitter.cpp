@@ -109,7 +109,7 @@ void Tailsitter::update_vtol_state()
 			float time_since_trans_start = (float)(hrt_absolute_time() - _vtol_schedule.transition_start) * 1e-6f;
 
 			// check if we have reached pitch angle to switch to MC mode
-			if (pitch >= PITCH_TRANSITION_BACK || time_since_trans_start > _params->back_trans_duration) {
+			if (pitch >= PITCH_TRANSITION_BACK || time_since_trans_start > _param_vt_b_trans_dur.get()) {
 				_vtol_schedule.flight_mode = vtol_mode::MC_MODE;
 			}
 
@@ -134,13 +134,13 @@ void Tailsitter::update_vtol_state()
 
 
 				const bool airspeed_triggers_transition = PX4_ISFINITE(_airspeed_validated->calibrated_airspeed_m_s)
-						&& !_params->airspeed_disabled;
+						&& !_param_fw_arsp_mode.get() ;
 
 				bool transition_to_fw = false;
 
 				if (pitch <= PITCH_TRANSITION_FRONT_P1) {
 					if (airspeed_triggers_transition) {
-						transition_to_fw = _airspeed_validated->calibrated_airspeed_m_s >= _params->transition_airspeed;
+						transition_to_fw = _airspeed_validated->calibrated_airspeed_m_s >= _param_vt_arsp_trans.get() ;
 
 					} else {
 						transition_to_fw = true;
@@ -154,8 +154,8 @@ void Tailsitter::update_vtol_state()
 				}
 
 				// check front transition timeout
-				if (_params->front_trans_timeout > FLT_EPSILON) {
-					if (time_since_trans_start > _params->front_trans_timeout) {
+				if (_param_vt_trans_timeout.get()  > FLT_EPSILON) {
+					if (time_since_trans_start > _param_vt_trans_timeout.get()) {
 						// transition timeout occured, abort transition
 						_attc->quadchute(VtolAttitudeControl::QuadchuteReason::TransitionTimeout);
 					}
@@ -243,7 +243,7 @@ void Tailsitter::update_transition_state()
 
 	if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_FRONT_P1) {
 
-		const float trans_pitch_rate = M_PI_2_F / _params->front_trans_duration;
+		const float trans_pitch_rate = M_PI_2_F / _param_vt_f_trans_dur.get() ;
 
 		if (tilt < M_PI_2_F - _params_tailsitter.fw_pitch_sp_offset) {
 			_q_trans_sp = Quatf(AxisAnglef(_trans_rot_axis,
@@ -251,8 +251,8 @@ void Tailsitter::update_transition_state()
 		}
 
 		// check front transition timeout
-		if (_params->front_trans_timeout > FLT_EPSILON) {
-			if (time_since_trans_start > _params->front_trans_timeout) {
+		if (_param_vt_trans_timeout.get()  > FLT_EPSILON) {
+			if (time_since_trans_start > _param_vt_trans_timeout.get()) {
 				// transition timeout occured, abort transition
 				_attc->quadchute(VtolAttitudeControl::QuadchuteReason::TransitionTimeout);
 			}
@@ -260,7 +260,7 @@ void Tailsitter::update_transition_state()
 
 	} else if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_BACK) {
 
-		const float trans_pitch_rate = M_PI_2_F / _params->back_trans_duration;
+		const float trans_pitch_rate = M_PI_2_F / _param_vt_b_trans_dur.get() ;
 
 		if (!_flag_idle_mc) {
 			_flag_idle_mc = set_idle_mc();
@@ -347,9 +347,9 @@ void Tailsitter::fill_actuator_outputs()
 		_thrust_setpoint_0->xyz[2] = -fw_in[actuator_controls_s::INDEX_THROTTLE];
 
 		/* allow differential thrust if enabled */
-		if (_params->diff_thrust == 1) {
-			mc_out[actuator_controls_s::INDEX_ROLL] = fw_in[actuator_controls_s::INDEX_YAW] * _params->diff_thrust_scale;
-			_torque_setpoint_0->xyz[0] = fw_in[actuator_controls_s::INDEX_YAW] * _params->diff_thrust_scale;
+		if (_param_vt_fw_difthr_en.get()) {
+			mc_out[actuator_controls_s::INDEX_ROLL] = fw_in[actuator_controls_s::INDEX_YAW] * _param_vt_fw_difthr_sc.get() ;
+			_torque_setpoint_0->xyz[0] = fw_in[actuator_controls_s::INDEX_YAW] * _param_vt_fw_difthr_sc.get() ;
 		}
 
 	} else {
@@ -361,7 +361,7 @@ void Tailsitter::fill_actuator_outputs()
 		_thrust_setpoint_0->xyz[2] = -mc_in[actuator_controls_s::INDEX_THROTTLE];
 	}
 
-	if (_params->elevons_mc_lock && _vtol_schedule.flight_mode == vtol_mode::MC_MODE) {
+	if (_param_vt_elev_mc_lock.get()  && _vtol_schedule.flight_mode == vtol_mode::MC_MODE) {
 		fw_out[actuator_controls_s::INDEX_ROLL]  = 0;
 		fw_out[actuator_controls_s::INDEX_PITCH] = 0;
 

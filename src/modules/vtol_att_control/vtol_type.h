@@ -48,42 +48,6 @@
 #include <drivers/drv_pwm_output.h>
 #include <px4_platform_common/module_params.h>
 
-struct Params {
-	int32_t ctrl_alloc;
-	int32_t idle_pwm_mc;			// pwm value for idle in mc mode
-	int32_t vtol_motor_id;
-	int32_t vtol_type;
-	bool elevons_mc_lock;		// lock elevons in multicopter mode
-	float fw_min_alt;			// minimum relative altitude for FW mode (QuadChute)
-	float fw_alt_err;			// maximum negative altitude error for FW mode (Adaptive QuadChute)
-	float fw_qc_max_pitch;		// maximum pitch angle FW mode (QuadChute)
-	float fw_qc_max_roll;		// maximum roll angle FW mode (QuadChute)
-	float front_trans_time_openloop;
-	float front_trans_time_min;
-	float front_trans_duration;
-	float back_trans_duration;
-	float transition_airspeed;
-	float front_trans_throttle;
-	float back_trans_throttle;
-	float airspeed_blend;
-	bool airspeed_disabled;
-	float front_trans_timeout;
-	float mpc_xy_cruise;
-	int32_t fw_motors_off;			/**< bitmask of all motors that should be off in fixed wing mode */
-	int32_t diff_thrust;
-	float diff_thrust_scale;
-	float pitch_min_rad;
-	float land_pitch_min_rad;
-	float forward_thrust_scale;
-	float dec_to_pitch_ff;
-	float dec_to_pitch_i;
-	float back_trans_dec_sp;
-	bool vt_mc_on_fmu;
-	int32_t vt_forward_thrust_enable_mode;
-	float mpc_land_alt1;
-	float mpc_land_alt2;
-};
-
 // Has to match 1:1 msg/vtol_vehicle_status.msg
 enum class mode {
 	TRANSITION_TO_FW = 1,
@@ -284,8 +248,7 @@ public:
 	float update_and_get_backtransition_pitch_sp();
 
 	DEFINE_PARAMETERS(
-		(ParamBool<px4::params::VT_FW_PERM_STAB>) _param_vt_fw_perm_stab,
-		(ParamInt<px4::params::VT_TYPE>) _param_vt_type,
+
 		(ParamBool<px4::params::VT_ELEV_MC_LOCK>) _param_vt_elev_mc_lock,
 		(ParamFloat<px4::params::VT_FW_MIN_ALT>) _param_vt_fw_min_alt,
 		(ParamFloat<px4::params::VT_FW_ALT_ERR>) _param_vt_fw_alt_err,
@@ -311,7 +274,7 @@ public:
 
 		(ParamFloat<px4::params::VT_PTCH_MIN>) _param_vt_ptch_min,
 		(ParamFloat<px4::params::VT_FWD_THRUST_SC>) _param_vt_fwd_thrust_sc,
-		(ParamBool<px4::params::VT_FWD_THRUST_EN>) _param_vt_fwd_thrust_en,
+		(ParamInt<px4::params::VT_FWD_THRUST_EN>) _param_vt_fwd_thrust_en,
 		(ParamFloat<px4::params::MPC_LAND_ALT1>) _param_mpc_land_alt1,
 		(ParamFloat<px4::params::MPC_LAND_ALT2>) _param_mpc_land_alt2,
 		(ParamFloat<px4::params::VT_LND_PTCH_MIN>) _param_vt_lnd_ptch_min,
