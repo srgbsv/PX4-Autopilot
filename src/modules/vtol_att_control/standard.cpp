@@ -59,40 +59,11 @@ Standard::Standard(VtolAttitudeControl *attc) :
 	_mc_pitch_weight = 1.0f;
 	_mc_yaw_weight = 1.0f;
 	_mc_throttle_weight = 1.0f;
-
-	_params_handles_standard.pusher_ramp_dt = param_find("VT_PSHER_RMP_DT");
-	_params_handles_standard.back_trans_ramp = param_find("VT_B_TRANS_RAMP");
-	_params_handles_standard.pitch_setpoint_offset = param_find("FW_PSP_OFF");
-	_params_handles_standard.reverse_output = param_find("VT_B_REV_OUT");
-	_params_handles_standard.reverse_delay = param_find("VT_B_REV_DEL");
 }
 
 void
 Standard::parameters_update()
 {
-	float v;
-
-	/* duration of a forwards transition to fw mode */
-	param_get(_params_handles_standard.pusher_ramp_dt, &v);
-	_params_standard.pusher_ramp_dt = math::constrain(v, 0.0f, 20.0f);
-
-	/* MC ramp up during back transition to mc mode */
-	param_get(_params_handles_standard.back_trans_ramp, &v);
-	_params_standard.back_trans_ramp = math::constrain(v, 0.0f, _param_vt_b_trans_dur.get());
-
-	_airspeed_trans_blend_margin = _param_vt_arsp_trans.get() - _param_vt_arsp_blend.get();
-
-	/* pitch setpoint offset */
-	param_get(_params_handles_standard.pitch_setpoint_offset, &v);
-	_params_standard.pitch_setpoint_offset = math::radians(v);
-
-	/* reverse output */
-	param_get(_params_handles_standard.reverse_output, &v);
-	_params_standard.reverse_output = math::constrain(v, 0.0f, 1.0f);
-
-	/* reverse output */
-	param_get(_params_handles_standard.reverse_delay, &v);
-	_params_standard.reverse_delay = math::constrain(v, 0.0f, 10.0f);
 
 }
 
@@ -131,7 +102,7 @@ void Standard::update_vtol_state()
 			// Regular backtransition
 			_vtol_schedule.flight_mode = vtol_mode::TRANSITION_TO_MC;
 			_vtol_schedule.transition_start = hrt_absolute_time();
-			_reverse_output = _params_standard.reverse_output;
+			_reverse_output = _param_vt_b_rev_out.get();
 
 		} else if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_TO_FW) {
 			// failsafe back to mc mode
@@ -247,14 +218,16 @@ void Standard::update_transition_state()
 	}
 
 	if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_TO_FW) {
-		if (_params_standard.pusher_ramp_dt <= 0.0f) {
+		if (_param_vt_psher_rmp_dt.get() <= 0.0f) {
 			// just set the final target throttle value
 			_pusher_throttle = _param_vt_f_trans_thr.get();
 
 		} else if (_pusher_throttle <= _param_vt_f_trans_thr.get()) {
 			// ramp up throttle to the target throttle value
-			_pusher_throttle = _param_vt_f_trans_thr.get() * time_since_trans_start / _params_standard.pusher_ramp_dt;
+			_pusher_throttle = _param_vt_f_trans_thr.get() * time_since_trans_start / _param_vt_psher_rmp_dt.get();
 		}
+
+		_airspeed_trans_blend_margin = _param_vt_arsp_trans.get() - _param_vt_arsp_blend.get();
 
 		// do blending of mc and fw controls if a blending airspeed has been provided and the minimum transition time has passed
 		if (_airspeed_trans_blend_margin > 0.0f &&
@@ -274,7 +247,7 @@ void Standard::update_transition_state()
 		}
 
 		// ramp up FW_PSP_OFF
-		_v_att_sp->pitch_body = _params_standard.pitch_setpoint_offset * (1.0f - mc_weight);
+		_v_att_sp->pitch_body = math::radians(_param_fw_psp_off.get()) * (1.0f - mc_weight);
 
 		const Quatf q_sp(Eulerf(_v_att_sp->roll_body, _v_att_sp->pitch_body, _v_att_sp->yaw_body));
 		q_sp.copyTo(_v_att_sp->q_d);
@@ -299,17 +272,16 @@ void Standard::update_transition_state()
 
 		_pusher_throttle = 0.0f;
 
-		if (time_since_trans_start >= _params_standard.reverse_delay) {
+		if (time_since_trans_start >= _param_vt_b_rev_del.get()) {
 			// Handle throttle reversal for active breaking
-			float thrscale = (time_since_trans_start - _params_standard.reverse_delay) / (_params_standard.pusher_ramp_dt);
+			float thrscale = (time_since_trans_start - _param_vt_b_rev_del.get()) / (_param_vt_psher_rmp_dt.get());
 			thrscale = math::constrain(thrscale, 0.0f, 1.0f);
 			_pusher_throttle = thrscale * _param_vt_b_trans_thr.get();
 		}
 
 		// continually increase mc attitude control as we transition back to mc mode
-		if (_params_standard.back_trans_ramp > FLT_EPSILON) {
-			mc_weight = time_since_trans_start / _params_standard.back_trans_ramp;
-
+		if (_param_vt_b_trans_ramp.get() > FLT_EPSILON) {
+			mc_weight = time_since_trans_start / _param_vt_b_trans_ramp.get();
 		}
 
 		set_all_motor_state(motor_state::ENABLED);

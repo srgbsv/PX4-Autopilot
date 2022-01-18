@@ -247,44 +247,43 @@ public:
 
 	float update_and_get_backtransition_pitch_sp();
 
-	DEFINE_PARAMETERS(
+	DEFINE_PARAMETERS_CUSTOM_PARENT(ModuleParams,
+					(ParamBool<px4::params::VT_ELEV_MC_LOCK>) _param_vt_elev_mc_lock,
+					(ParamFloat<px4::params::VT_FW_MIN_ALT>) _param_vt_fw_min_alt,
+					(ParamFloat<px4::params::VT_FW_ALT_ERR>) _param_vt_fw_alt_err,
+					(ParamInt<px4::params::VT_FW_QC_P>) _param_vt_fw_qc_p,
+					(ParamInt<px4::params::VT_FW_QC_R>) _param_vt_fw_qc_r,
+					(ParamFloat<px4::params::VT_F_TR_OL_TM>) _param_vt_f_tr_ol_tm,
+					(ParamFloat<px4::params::VT_TRANS_MIN_TM>) _param_vt_trans_min_tm,
 
-		(ParamBool<px4::params::VT_ELEV_MC_LOCK>) _param_vt_elev_mc_lock,
-		(ParamFloat<px4::params::VT_FW_MIN_ALT>) _param_vt_fw_min_alt,
-		(ParamFloat<px4::params::VT_FW_ALT_ERR>) _param_vt_fw_alt_err,
-		(ParamInt<px4::params::VT_FW_QC_P>) _param_vt_fw_qc_p,
-		(ParamInt<px4::params::VT_FW_QC_R>) _param_vt_fw_qc_r,
-		(ParamFloat<px4::params::VT_F_TR_OL_TM>) _param_vt_f_tr_ol_tm,
-		(ParamFloat<px4::params::VT_TRANS_MIN_TM>) _param_vt_trans_min_tm,
+					(ParamFloat<px4::params::VT_F_TRANS_DUR>) _param_vt_f_trans_dur,
+					(ParamFloat<px4::params::VT_B_TRANS_DUR>) _param_vt_b_trans_dur,
+					(ParamFloat<px4::params::VT_ARSP_TRANS>) _param_vt_arsp_trans,
+					(ParamFloat<px4::params::VT_F_TRANS_THR>) _param_vt_f_trans_thr,
+					(ParamFloat<px4::params::VT_B_TRANS_THR>) _param_vt_b_trans_thr,
+					(ParamFloat<px4::params::VT_ARSP_BLEND>) _param_vt_arsp_blend,
+					(ParamBool<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
+					(ParamFloat<px4::params::VT_TRANS_TIMEOUT>) _param_vt_trans_timeout,
+					(ParamFloat<px4::params::MPC_XY_CRUISE>) _param_mpc_xy_cruise,
+					(ParamBool<px4::params::VT_FW_DIFTHR_EN>) _param_vt_fw_difthr_en,
+					(ParamFloat<px4::params::VT_FW_DIFTHR_SC>) _param_vt_fw_difthr_sc,
+					(ParamFloat<px4::params::VT_B_DEC_FF>) _param_vt_b_dec_ff,
+					(ParamFloat<px4::params::VT_B_DEC_I>) _param_vt_b_dec_i,
+					(ParamFloat<px4::params::VT_B_DEC_MSS>) _param_vt_b_dec_mss,
 
-		(ParamFloat<px4::params::VT_F_TRANS_DUR>) _param_vt_f_trans_dur,
-		(ParamFloat<px4::params::VT_B_TRANS_DUR>) _param_vt_b_trans_dur,
-		(ParamFloat<px4::params::VT_ARSP_TRANS>) _param_vt_arsp_trans,
-		(ParamFloat<px4::params::VT_F_TRANS_THR>) _param_vt_f_trans_thr,
-		(ParamFloat<px4::params::VT_B_TRANS_THR>) _param_vt_b_trans_thr,
-		(ParamFloat<px4::params::VT_ARSP_BLEND>) _param_vt_arsp_blend,
-		(ParamBool<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
-		(ParamFloat<px4::params::VT_TRANS_TIMEOUT>) _param_vt_trans_timeout,
-		(ParamFloat<px4::params::MPC_XY_CRUISE>) _param_mpc_xy_cruise,
-		(ParamBool<px4::params::VT_FW_DIFTHR_EN>) _param_vt_fw_difthr_en,
-		(ParamFloat<px4::params::VT_FW_DIFTHR_SC>) _param_vt_fw_difthr_sc,
-		(ParamFloat<px4::params::VT_B_DEC_FF>) _param_vt_b_dec_ff,
-		(ParamFloat<px4::params::VT_B_DEC_I>) _param_vt_b_dec_i,
-		(ParamFloat<px4::params::VT_B_DEC_MSS>) _param_vt_b_dec_mss,
+					(ParamFloat<px4::params::VT_PTCH_MIN>) _param_vt_ptch_min,
+					(ParamFloat<px4::params::VT_FWD_THRUST_SC>) _param_vt_fwd_thrust_sc,
+					(ParamInt<px4::params::VT_FWD_THRUST_EN>) _param_vt_fwd_thrust_en,
+					(ParamFloat<px4::params::MPC_LAND_ALT1>) _param_mpc_land_alt1,
+					(ParamFloat<px4::params::MPC_LAND_ALT2>) _param_mpc_land_alt2,
+					(ParamFloat<px4::params::VT_LND_PTCH_MIN>) _param_vt_lnd_ptch_min,
 
-		(ParamFloat<px4::params::VT_PTCH_MIN>) _param_vt_ptch_min,
-		(ParamFloat<px4::params::VT_FWD_THRUST_SC>) _param_vt_fwd_thrust_sc,
-		(ParamInt<px4::params::VT_FWD_THRUST_EN>) _param_vt_fwd_thrust_en,
-		(ParamFloat<px4::params::MPC_LAND_ALT1>) _param_mpc_land_alt1,
-		(ParamFloat<px4::params::MPC_LAND_ALT2>) _param_mpc_land_alt2,
-		(ParamFloat<px4::params::VT_LND_PTCH_MIN>) _param_vt_lnd_ptch_min,
-
-		(ParamBool<px4::params::SYS_CTRL_ALLOC>) _param_sys_ctrl_alloc,
-		(ParamInt<px4::params::VT_IDLE_PWM_MC>) _param_vt_idle_pwm_mc,
-		(ParamInt<px4::params::VT_MOT_ID>) _param_vt_mot_id,
-		(ParamBool<px4::params::VT_MC_ON_FMU>) _param_vt_mc_on_fmu,
-		(ParamInt<px4::params::VT_FW_MOT_OFFID>) _param_vt_fw_mot_offid
-	)
+					(ParamBool<px4::params::SYS_CTRL_ALLOC>) _param_sys_ctrl_alloc,
+					(ParamInt<px4::params::VT_IDLE_PWM_MC>) _param_vt_idle_pwm_mc,
+					(ParamInt<px4::params::VT_MOT_ID>) _param_vt_mot_id,
+					(ParamBool<px4::params::VT_MC_ON_FMU>) _param_vt_mc_on_fmu,
+					(ParamInt<px4::params::VT_FW_MOT_OFFID>) _param_vt_fw_mot_offid
+				       )
 
 private:
 
