@@ -66,7 +66,7 @@ Tiltrotor::Tiltrotor(VtolAttitudeControl *attc) :
 void
 Tiltrotor::parameters_update()
 {
-
+	VtolType::updateParams();
 }
 
 void Tiltrotor::update_vtol_state()

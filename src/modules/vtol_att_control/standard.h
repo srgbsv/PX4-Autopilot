@@ -46,12 +46,6 @@
 #ifndef STANDARD_H
 #define STANDARD_H
 #include "vtol_type.h"
-// #include <parameters/param.h>
-// #include <drivers/drv_hrt.h>
-// #include <px4_platform_common/module_params.h>
-// #include <uORB/Subscription.hpp>
-// #include <uORB/topics/parameter_update.h>
-
 
 class Standard : public VtolType
 {

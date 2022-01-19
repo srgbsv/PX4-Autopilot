@@ -53,7 +53,6 @@
 #include <drivers/drv_pwm_output.h>
 #include <lib/geo/geo.h>
 #include <lib/mathlib/mathlib.h>
-// #include <lib/parameters/param.h>
 #include <lib/perf/perf_counter.h>
 #include <matrix/math.hpp>
 #include <px4_platform_common/px4_config.h>

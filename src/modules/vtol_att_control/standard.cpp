@@ -64,7 +64,10 @@ Standard::Standard(VtolAttitudeControl *attc) :
 void
 Standard::parameters_update()
 {
+	VtolType::updateParams();
 
+	// make sure that pusher ramp in backtransition is smaller than back transition (max) duration
+	_param_vt_b_trans_ramp.set(math::min(_param_vt_b_trans_ramp.get(), _param_vt_b_trans_dur.get()));
 }
 
 void Standard::update_vtol_state()

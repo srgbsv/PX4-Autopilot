@@ -58,12 +58,12 @@ Tailsitter::Tailsitter(VtolAttitudeControl *attc) :
 	_mc_yaw_weight = 1.0f;
 
 	_flag_was_in_trans_mode = false;
-
 }
 
 void
 Tailsitter::parameters_update()
 {
+	VtolType::updateParams();
 
 }
 

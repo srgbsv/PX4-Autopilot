@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2015, 2021 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2015-2022 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -187,8 +187,6 @@ public:
 	struct vehicle_torque_setpoint_s 		*_torque_setpoint_1;
 	struct vehicle_thrust_setpoint_s 		*_thrust_setpoint_0;
 	struct vehicle_thrust_setpoint_s 		*_thrust_setpoint_1;
-
-	struct Params 					*_params;
 
 	bool _flag_idle_mc = false;		//false = "idle is set for fixed wing mode"; true = "idle is set for multicopter mode"
 
