@@ -58,16 +58,13 @@ Tailsitter::Tailsitter(VtolAttitudeControl *attc) :
 	_mc_yaw_weight = 1.0f;
 
 	_flag_was_in_trans_mode = false;
-	_params_handles_tailsitter.fw_pitch_sp_offset = param_find("FW_PSP_OFF");
+
 }
 
 void
 Tailsitter::parameters_update()
 {
-	float v;
 
-	param_get(_params_handles_tailsitter.fw_pitch_sp_offset, &v);
-	_params_tailsitter.fw_pitch_sp_offset = math::radians(v);
 }
 
 void Tailsitter::update_vtol_state()
@@ -245,7 +242,7 @@ void Tailsitter::update_transition_state()
 
 		const float trans_pitch_rate = M_PI_2_F / _param_vt_f_trans_dur.get() ;
 
-		if (tilt < M_PI_2_F - _params_tailsitter.fw_pitch_sp_offset) {
+		if (tilt < M_PI_2_F - math::radians(_param_fw_psp_off.get())) {
 			_q_trans_sp = Quatf(AxisAnglef(_trans_rot_axis,
 						       time_since_trans_start * trans_pitch_rate)) * _q_trans_start;
 		}
