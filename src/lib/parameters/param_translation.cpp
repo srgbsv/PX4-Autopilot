@@ -163,5 +163,14 @@ bool param_modify_on_import(bson_node_t node)
 		}
 	}
 
+	// 2022-01-20: translate VT_FW_PERM_STAB to COM_FW_PERM_STAB
+	{
+		if (strcmp("VT_FW_PERM_STAB", node->name) == 0) {
+			strcpy(node->name, "VT_PITCH_MIN");
+			PX4_INFO("copying %s -> %s", "VT_FW_PERM_STAB", "COM_FW_PERM_STAB");
+			return true;
+		}
+	}
+
 	return false;
 }
