@@ -143,9 +143,8 @@ public:
 	 *
 	 * @return sets _lateral_accel setpoint
 	 */
-	void navigate_waypoints(const matrix::Vector2d &vector_A, const matrix::Vector2d &vector_B,
-				const matrix::Vector2d &vector_curr_position, const matrix::Vector2f &ground_speed);
-
+	void navigate_waypoints(const matrix::Vector2f &vector_A, const matrix::Vector2f &vector_B,
+				const matrix::Vector2f &vector_curr_position, const matrix::Vector2f &ground_speed);
 	/**
 	 * Navigate on an orbit around a loiter waypoint.
 	 *

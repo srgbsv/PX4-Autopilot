@@ -281,7 +281,7 @@ RoverPositionControl::control_position(const matrix::Vector2d &current_position,
 					_pos_ctrl_state = STOPPING;  // We are closer than loiter radius to waypoint, stop.
 
 				} else {
-					_gnd_control.navigate_waypoints(prev_wp, curr_wp, current_position, ground_speed_2d);
+					// _gnd_control.navigate_waypoints(prev_wp, curr_wp, current_position, ground_speed_2d);
 
 					_act_controls.control[actuator_controls_s::INDEX_THROTTLE] = mission_throttle;
 
