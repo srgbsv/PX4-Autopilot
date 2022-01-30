@@ -905,14 +905,23 @@ FixedwingPositionControl::control_auto(const hrt_abstime &now, const Vector2d &c
 		break;
 	}
 
-	Vector2f path_point_sp(path_sp.x, path_sp.y);
-	Vector2f unit_path_tangent(path_sp.vx, path_sp.vy);
-	float curvature = path_sp.curvature;
 	Vector2f curr_pos_local{_local_pos.x, _local_pos.y};
-	_npfg.navigatePathTangent(curr_pos_local, path_point_sp, unit_path_tangent, get_nav_speed_2d(ground_speed), _wind_vel,
-				  curvature);
 
-	_att_sp.roll_body = _npfg.getRollSetpoint();
+	if (_param_fw_use_npfg.get()) {
+		Vector2f path_point_sp(path_sp.x, path_sp.y);
+		Vector2f unit_path_tangent(path_sp.vx, path_sp.vy);
+		float curvature = path_sp.curvature;
+		_npfg.navigatePathTangent(curr_pos_local, path_point_sp, unit_path_tangent, get_nav_speed_2d(ground_speed), _wind_vel,
+					  curvature);
+
+		_att_sp.roll_body = _npfg.getRollSetpoint();
+
+	} else {
+		Vector2f curr_wp{path_sp};
+		Vector2f prev_wp{path_sp.prev_wp};
+		_l1_control.navigate_waypoints(prev_wp, curr_wp, curr_pos_local, get_nav_speed_2d(ground_speed));
+		_att_sp.roll_body = _l1_control.get_roll_setpoint();
+	}
 
 	/* reset landing state */
 	if (position_sp_type != position_setpoint_s::SETPOINT_TYPE_LAND) {
@@ -1199,6 +1208,10 @@ FixedwingPositionControl::control_auto_position(const hrt_abstime &now, const fl
 	float curvature = PX4_ISFINITE(_pos_sp_triplet.current.loiter_radius) ? 1 / _pos_sp_triplet.current.loiter_radius :
 			  0.0f;
 
+	vehicle_local_path_setpoint_s setpoint;
+	Vector2f curr_wp_local = _global_local_proj_ref.project(curr_wp(0), curr_wp(1));
+	Vector2f prev_wp_local = _global_local_proj_ref.project(prev_wp(0), prev_wp(1));
+
 	if (_param_fw_use_npfg.get()) {
 		_npfg.setAirspeedNom(target_airspeed * _eas2tas);
 		_npfg.setAirspeedMax(_param_fw_airspd_max.get() * _eas2tas);
@@ -1208,6 +1221,18 @@ FixedwingPositionControl::control_auto_position(const hrt_abstime &now, const fl
 		_l1_control.navigate_waypoints(prev_wp, curr_wp, curr_pos, get_nav_speed_2d(ground_speed));
 		_att_sp.roll_body = _l1_control.get_roll_setpoint();
 	}
+
+	/* populate l1 control setpoint */
+	prev_wp_local.copyTo(setpoint.prev_wp);
+
+	setpoint.x = curr_wp_local(0);
+	setpoint.y = curr_wp_local(1);
+	setpoint.z = position_sp_alt;
+	setpoint.vx = pos_sp_curr.vx;
+	setpoint.vy = pos_sp_curr.vy;
+	setpoint.vz = pos_sp_curr.vz;
+	setpoint.airspeed = target_airspeed;
+	setpoint.curvature = curvature;
 
 	_att_sp.yaw_body = _yaw; // yaw is not controlled, so set setpoint to current yaw
 
@@ -1220,17 +1245,7 @@ FixedwingPositionControl::control_auto_position(const hrt_abstime &now, const fl
 				   tecs_fw_mission_throttle,
 				   false,
 				   radians(_param_fw_p_lim_min.get()));
-	/* populate l1 control setpoint */
-	Vector2f curr_wp_local = _global_local_proj_ref.project(curr_wp(0), curr_wp(1));
-	vehicle_local_path_setpoint_s setpoint;
-	setpoint.x = curr_wp_local(0);
-	setpoint.y = curr_wp_local(1);
-	setpoint.z = position_sp_alt;
-	setpoint.vx = pos_sp_curr.vx;
-	setpoint.vy = pos_sp_curr.vy;
-	setpoint.vz = pos_sp_curr.vz;
-	setpoint.airspeed = target_airspeed;
-	setpoint.curvature = curvature;
+
 	return setpoint;
 }
 
