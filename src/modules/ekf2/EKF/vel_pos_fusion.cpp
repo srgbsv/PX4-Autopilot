@@ -59,10 +59,10 @@ bool Ekf::fuseHorizontalVelocity(const Vector3f &innov, const float innov_gate, 
 		_time_last_hor_vel_fuse = _time_last_imu;
 		_innov_check_fail_status.flags.reject_hor_vel = false;
 
-		fuseVelPosHeight(innov(0), innov_var(0), 0);
-		fuseVelPosHeight(innov(1), innov_var(1), 1);
+		bool fuse_vx = fuseVelPosHeight(innov(0), innov_var(0), 0);
+		bool fuse_vy = fuseVelPosHeight(innov(1), innov_var(1), 1);
 
-		return true;
+		return fuse_vx && fuse_vy;
 
 	} else {
 		_innov_check_fail_status.flags.reject_hor_vel = true;
@@ -97,9 +97,7 @@ bool Ekf::fuseVerticalVelocity(const Vector3f &innov, const float innov_gate, co
 		_time_last_ver_vel_fuse = _time_last_imu;
 		_innov_check_fail_status.flags.reject_ver_vel = false;
 
-		fuseVelPosHeight(innovation, innov_var(2), 2);
-
-		return true;
+		return fuseVelPosHeight(innovation, innov_var(2), 2);
 
 	} else {
 		_innov_check_fail_status.flags.reject_ver_vel = true;
@@ -124,19 +122,14 @@ bool Ekf::fuseHorizontalPosition(const Vector3f &innov, const float innov_gate, 
 			return false;
 		}
 
-		if (!_fuse_hpos_as_odom) {
-			_time_last_hor_pos_fuse = _time_last_imu;
-
-		} else {
-			_time_last_delpos_fuse = _time_last_imu;
-		}
+		_time_last_hor_pos_fuse = _time_last_imu;
 
 		_innov_check_fail_status.flags.reject_hor_pos = false;
 
-		fuseVelPosHeight(innov(0), innov_var(0), 3);
-		fuseVelPosHeight(innov(1), innov_var(1), 4);
+		bool fuse_x = fuseVelPosHeight(innov(0), innov_var(0), 3);
+		bool fuse_y = fuseVelPosHeight(innov(1), innov_var(1), 4);
 
-		return true;
+		return fuse_x && fuse_y;
 
 	} else {
 		_innov_check_fail_status.flags.reject_hor_pos = true;
@@ -169,9 +162,8 @@ bool Ekf::fuseVerticalPosition(const float innov, const float innov_gate, const 
 	if (innov_check_pass) {
 		_time_last_hgt_fuse = _time_last_imu;
 		_innov_check_fail_status.flags.reject_ver_pos = false;
-		fuseVelPosHeight(innovation, innov_var, 5);
 
-		return true;
+		return fuseVelPosHeight(innovation, innov_var, 5);
 
 	} else {
 		_innov_check_fail_status.flags.reject_ver_pos = true;
@@ -180,9 +172,8 @@ bool Ekf::fuseVerticalPosition(const float innov, const float innov_gate, const 
 }
 
 // Helper function that fuses a single velocity or position measurement
-void Ekf::fuseVelPosHeight(const float innov, const float innov_var, const int obs_index)
+bool Ekf::fuseVelPosHeight(const float innov, const float innov_var, const int obs_index)
 {
-
 	Vector24f Kfusion;  // Kalman gain vector for any single observation - sequential fusion is used.
 	const unsigned state_index = obs_index + 4;  // we start with vx and this is the 4. state
 
@@ -222,7 +213,11 @@ void Ekf::fuseVelPosHeight(const float innov, const float innov_var, const int o
 
 		// apply the state corrections
 		fuse(Kfusion, innov);
+
+		return true;
 	}
+
+	return false;
 }
 
 void Ekf::setVelPosFaultStatus(const int index, const bool status)

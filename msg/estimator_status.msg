@@ -69,7 +69,7 @@ uint32 filter_fault_flags	# Bitmask to indicate EKF internal faults
 
 float32 pos_horiz_accuracy # 1-Sigma estimated horizontal position accuracy relative to the estimators origin (m)
 float32 pos_vert_accuracy # 1-Sigma estimated vertical position accuracy relative to the estimators origin (m)
-uint16 innovation_check_flags # Bitmask to indicate pass/fail status of innovation consistency checks
+uint32 innovation_check_flags # Bitmask to indicate pass/fail status of innovation consistency checks
 # 0 - true if velocity observations have been rejected
 # 1 - true if horizontal position observations have been rejected
 # 2 - true if true if vertical position observations have been rejected

@@ -416,6 +416,14 @@ union fault_status_u {
 		bool bad_acc_bias: 1;	///< 15 - true if bad delta velocity bias estimates have been detected
 		bool bad_acc_vertical: 1; ///< 16 - true if bad vertical accelerometer data has been detected
 		bool bad_acc_clipping: 1; ///< 17 - true if delta velocity data contains clipping (asymmetric railing)
+		bool bad_ev_pos_x:     1; ///< 18 - true if external vision velocity X is bad
+		bool bad_ev_pos_y:     1; ///< 19 - true if external vision velocity Y is bad
+		bool bad_ev_pos_z:     1; ///< 20 - true if external vision velocity Z is bad
+		bool bad_ev_vel_x:     1; ///< 21 - true if external vision position X is bad
+		bool bad_ev_vel_y:     1; ///< 22 - true if external vision position Y is bad
+		bool bad_ev_vel_z:     1; ///< 23 - true if external vision position Z is bad
+		bool bad_ev_yaw:       1; ///< 24 - true if external vision yaw is bad
+
 	} flags;
 	uint32_t value;
 
@@ -437,9 +445,15 @@ union innovation_fault_status_u {
 		bool reject_hagl: 1;		///< 10 - true if the height above ground observation has been rejected
 		bool reject_optflow_X: 1;	///< 11 - true if the X optical flow observation has been rejected
 		bool reject_optflow_Y: 1;	///< 12 - true if the Y optical flow observation has been rejected
-	} flags;
-	uint16_t value;
+		bool reject_ev_pos_x: 1;       ///< 13 - true if the EV velocity X observation has been rejected
+		bool reject_ev_pos_y: 1;       ///< 14 - true if the EV velocity Y observation has been rejected
+		bool reject_ev_pos_z: 1;       ///< 15 - true if the EV velocity Z observation has been rejected
+		bool reject_ev_vel_x: 1;       ///< 16 - true if the EV position X observation has been rejected
+		bool reject_ev_vel_y: 1;       ///< 17 - true if the EV position Y observation has been rejected
+		bool reject_ev_vel_z: 1;       ///< 18 - true if the EV position Z observation has been rejected
 
+	} flags;
+	uint32_t value;
 };
 
 // publish the status of various GPS quality checks
@@ -491,6 +505,9 @@ union filter_control_status_u {
 		uint32_t vehicle_at_rest : 1; ///< 26 - true when the vehicle is at rest
 		uint32_t gps_yaw_fault : 1; ///< 27 - true when the GNSS heading has been declared faulty and is no longer being used
 		uint32_t rng_fault : 1; ///< 28 - true when the range finder has been declared faulty and is no longer being used
+		uint32_t ev_pos_fault : 1;  ///< 29 - true when the EV position has been declared faulty and is no longer being used
+		uint32_t ev_vel_fault : 1;  ///< 30 - true when the EV velocity has been declared faulty and is no longer being used
+		uint32_t ev_yaw_fault : 1;  ///< 31 - true when the EV yaw has been declared faulty and is no longer being used
 	} flags;
 	uint32_t value;
 };

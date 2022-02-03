@@ -102,8 +102,8 @@ public:
 
 	void getHeadingInnov(float &heading_innov) const { heading_innov = _heading_innov; }
 	void getHeadingInnovVar(float &heading_innov_var) const { heading_innov_var = _heading_innov_var; }
-
 	void getHeadingInnovRatio(float &heading_innov_ratio) const { heading_innov_ratio = _yaw_test_ratio; }
+
 	void getMagInnov(float mag_innov[3]) const { _mag_innov.copyTo(mag_innov); }
 	void getMagInnovVar(float mag_innov_var[3]) const { _mag_innov_var.copyTo(mag_innov_var); }
 	void getMagInnovRatio(float &mag_innov_ratio) const { mag_innov_ratio = _mag_test_ratio.max(); }
@@ -296,7 +296,7 @@ public:
 	// Innovation Test Ratios - these are the ratio of the innovation to the acceptance threshold.
 	// A value > 1 indicates that the sensor measurement has exceeded the maximum acceptable level and has been rejected by the EKF
 	// Where a measurement type is a vector quantity, eg magnetometer, GPS position, etc, the maximum value is returned.
-	void get_innovation_test_status(uint16_t &status, float &mag, float &vel, float &pos, float &hgt, float &tas,
+	void get_innovation_test_status(uint32_t &status, float &mag, float &vel, float &pos, float &hgt, float &tas,
 					float &hagl, float &beta) const;
 
 	// return a bitmask integer that describes which state estimates can be used for flight control
@@ -356,11 +356,9 @@ private:
 	bool _filter_initialised{false};	///< true when the EKF sttes and covariances been initialised
 
 	// variables used when position data is being fused using a relative position odometry model
-	bool _fuse_hpos_as_odom{false};		///< true when the NE position data is being fused using an odometry assumption
-	Vector2f _hpos_pred_prev{};		///< previous value of NE position state used by odometry fusion (m)
+	Vector3f _hpos_pred_prev{};		///< previous value of NE position state used by odometry fusion (m)
 	bool _hpos_prev_available{false};	///< true when previous values of the estimate and measurement are available for use
 	Dcmf _R_ev_to_ekf;			///< transformation matrix that rotates observations from the EV to the EKF navigation frame, initialized with Identity
-	bool _inhibit_ev_yaw_use{false};	///< true when the vision yaw data should not be used (e.g.: NE fusion requires true North)
 
 	// booleans true when fresh sensor data is available at the fusion time horizon
 	bool _gps_data_ready{false};	///< true when new GPS data has fallen behind the fusion time horizon and is available to be fused
@@ -379,15 +377,26 @@ private:
 	uint64_t _time_last_hor_vel_fuse{0};	///< time the last fusion of horizontal velocity measurements was performed (uSec)
 	uint64_t _time_last_ver_vel_fuse{0};	///< time the last fusion of verticalvelocity measurements was performed (uSec)
 	uint64_t _time_last_delpos_fuse{0};	///< time the last fusion of incremental horizontal position measurements was performed (uSec)
+
+
+	uint64_t _time_last_ev_pos_fuse{0};
+	uint64_t _time_last_ev_vel_fuse{0};
+	uint64_t _time_last_ev_yaw_fuse{0};
+
 	uint64_t _time_last_of_fuse{0};		///< time the last fusion of optical flow measurements were performed (uSec)
 	uint64_t _time_last_flow_terrain_fuse{0}; ///< time the last fusion of optical flow measurements for terrain estimation were performed (uSec)
 	uint64_t _time_last_arsp_fuse{0};	///< time the last fusion of airspeed measurements were performed (uSec)
 	uint64_t _time_last_beta_fuse{0};	///< time the last fusion of synthetic sideslip measurements were performed (uSec)
 	uint64_t _time_last_fake_pos_fuse{0};	///< last time we faked position measurements to constrain tilt errors during operation without external aiding (uSec)
 	uint64_t _time_last_gps_yaw_fuse{0};	///< time the last fusion of GPS yaw measurements were performed (uSec)
+
 	uint64_t _time_last_gps_yaw_data{0};	///< time the last GPS yaw measurement was available (uSec)
 	uint64_t _time_last_healthy_rng_data{0};
+
 	uint8_t _nb_gps_yaw_reset_available{0}; ///< remaining number of resets allowed before switching to another aiding source
+	uint8_t _nb_ev_pos_reset_available{0};
+	uint8_t _nb_ev_vel_reset_available{0};
+	uint8_t _nb_ev_yaw_reset_available{0};
 
 	Vector2f _last_known_posNE{};		///< last known local NE position vector (m)
 
@@ -581,20 +590,20 @@ private:
 	// yaw : angle observation defined as the first rotation in a 321 Tait-Bryan rotation sequence (rad)
 	// yaw_variance : variance of the yaw angle observation (rad^2)
 	// zero_innovation : Fuse data with innovation set to zero
-	void fuseYaw321(const float yaw, const float yaw_variance, bool zero_innovation = false);
+	bool fuseYaw321(const float yaw, const float yaw_variance, bool zero_innovation = false);
 
 	// fuse the yaw angle defined as the first rotation in a 312 Tait-Bryan rotation sequence
 	// yaw : angle observation defined as the first rotation in a 312 Tait-Bryan rotation sequence (rad)
 	// yaw_variance : variance of the yaw angle observation (rad^2)
 	// zero_innovation : Fuse data with innovation set to zero
-	void fuseYaw312(const float yaw, const float yaw_variance, bool zero_innovation = false);
+	bool fuseYaw312(const float yaw, const float yaw_variance, bool zero_innovation = false);
 
 	// update quaternion states and covariances using an innovation, observation variance and Jacobian vector
 	// innovation : prediction - measurement
 	// variance : observaton variance
 	// gate_sigma : innovation consistency check gate size (Sigma)
 	// jacobian : 4x1 vector of partial derivatives of observation wrt each quaternion state
-	void updateQuaternion(const float innovation, const float variance, const float gate_sigma,
+	bool updateQuaternion(const float innovation, const float variance, const float gate_sigma,
 			      const Vector4f &yaw_jacobian);
 
 	// fuse the yaw angle obtained from a dual antenna GPS unit
@@ -626,7 +635,7 @@ private:
 	void fuseEvHgt();
 
 	// fuse single velocity and position measurement
-	void fuseVelPosHeight(const float innov, const float innov_var, const int obs_index);
+	bool fuseVelPosHeight(const float innov, const float innov_var, const int obs_index);
 
 	void resetVelocity();
 
@@ -720,9 +729,6 @@ private:
 	// modify output filter to match the the EKF state at the fusion time horizon
 	void alignOutputFilter();
 
-	// update the rotation matrix which transforms EV navigation frame measurements into NED
-	void calcExtVisRotMat();
-
 	Vector3f getVisionVelocityInEkfFrame() const;
 
 	Vector3f getVisionVelocityVarianceInEkfFrame() const;
@@ -815,6 +821,9 @@ private:
 
 	// control fusion of external vision observations
 	void controlExternalVisionFusion();
+	void controlEvPosFusion();
+	void controlEvVelFusion();
+	void controlEvYawFusion();
 
 	// control fusion of optical flow observations
 	void controlOpticalFlowFusion();
@@ -1001,10 +1010,14 @@ private:
 	void startEvVelFusion();
 	void startEvYawFusion();
 
-	void stopEvFusion();
 	void stopEvPosFusion();
 	void stopEvVelFusion();
 	void stopEvYawFusion();
+
+	void fuseEvPosition();
+	void fuseEvPositionDelta();
+	void fuseEvVelocity();
+	void fuseEvYaw();
 
 	void stopAuxVelFusion();
 

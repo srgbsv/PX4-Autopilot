@@ -33,6 +33,9 @@ bool cs_synthetic_mag_z       # 25 - true when we are using a synthesized measur
 bool cs_vehicle_at_rest       # 26 - true when the vehicle is at rest
 bool cs_gps_yaw_fault         # 27 - true when the GNSS heading has been declared faulty and is no longer being used
 bool cs_rng_fault             # 28 - true when the range finder has been declared faulty and is no longer being used
+bool cs_ev_pos_fault          # 29 - true when the EV position has been declared faulty and is no longer being used
+bool cs_ev_vel_fault          # 30 - true when the EV velocity has been declared faulty and is no longer being used
+bool cs_ev_yaw_fault          # 31 - true when the EV yaw has been declared faulty and is no longer being used
 
 # fault status
 uint32 fault_status_changes   # number of filter fault status (fs) changes
@@ -54,6 +57,13 @@ bool fs_bad_pos_d             # 14 - true if fusion of the Down position has enc
 bool fs_bad_acc_bias          # 15 - true if bad delta velocity bias estimates have been detected
 bool fs_bad_acc_vertical      # 16 - true if bad vertical accelerometer data has been detected
 bool fs_bad_acc_clipping      # 17 - true if delta velocity data contains clipping (asymmetric railing)
+bool fs_bad_ev_pos_x          # 18 - true if external vision velocity X is bad
+bool fs_bad_ev_pos_y          # 19 - true if external vision velocity Y is bad
+bool fs_bad_ev_pos_z          # 20 - true if external vision velocity Z is bad
+bool fs_bad_ev_vel_x          # 21 - true if external vision position X is bad
+bool fs_bad_ev_vel_y          # 22 - true if external vision position Y is bad
+bool fs_bad_ev_vel_z          # 23 - true if external vision position Z is bad
+bool fs_bad_ev_yaw            # 24 - true if external vision yaw is bad
 
 
 # innovation test failures
@@ -71,3 +81,9 @@ bool reject_sideslip                      #  9 - true if the synthetic sideslip 
 bool reject_hagl                          # 10 - true if the height above ground observation has been rejected
 bool reject_optflow_x                     # 11 - true if the X optical flow observation has been rejected
 bool reject_optflow_y                     # 12 - true if the Y optical flow observation has been rejected
+bool reject_ev_pos_x                      # 13 - true if the EV velocity X observation has been rejected
+bool reject_ev_pos_y                      # 14 - true if the EV velocity Y observation has been rejected
+bool reject_ev_pos_z                      # 15 - true if the EV velocity Z observation has been rejected
+bool reject_ev_vel_x                      # 16 - true if the EV position X observation has been rejected
+bool reject_ev_vel_y                      # 17 - true if the EV position Y observation has been rejected
+bool reject_ev_vel_z                      # 18 - true if the EV position Z observation has been rejected

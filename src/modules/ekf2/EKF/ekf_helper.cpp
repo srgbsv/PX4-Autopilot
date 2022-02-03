@@ -50,11 +50,11 @@ void Ekf::resetVelocity()
 		// this reset is only called if we have new gps data at the fusion time horizon
 		resetVelocityToGps();
 
-	} else if (_control_status.flags.opt_flow) {
-		resetHorizontalVelocityToOpticalFlow();
-
 	} else if (_control_status.flags.ev_vel) {
 		resetVelocityToVision();
+
+	} else if (_control_status.flags.opt_flow) {
+		resetHorizontalVelocityToOpticalFlow();
 
 	} else {
 		resetHorizontalVelocityToZero();
@@ -943,7 +943,7 @@ void Ekf::resetMagBias()
 // Innovation Test Ratios - these are the ratio of the innovation to the acceptance threshold.
 // A value > 1 indicates that the sensor measurement has exceeded the maximum acceptable level and has been rejected by the EKF
 // Where a measurement type is a vector quantity, eg magnetometer, GPS position, etc, the maximum value is returned.
-void Ekf::get_innovation_test_status(uint16_t &status, float &mag, float &vel, float &pos, float &hgt, float &tas,
+void Ekf::get_innovation_test_status(uint32_t &status, float &mag, float &vel, float &pos, float &hgt, float &tas,
 				     float &hagl, float &beta) const
 {
 	// return the integer bitmask containing the consistency check pass/fail status
@@ -1266,6 +1266,7 @@ void Ekf::stopMag3DFusion()
 	if (_control_status.flags.mag_3D) {
 		saveMagCovData();
 		_control_status.flags.mag_3D = false;
+		_control_status.flags.mag_dec = false;
 	}
 }
 
@@ -1276,8 +1277,10 @@ void Ekf::stopMagHdgFusion()
 
 void Ekf::startMagHdgFusion()
 {
-	stopMag3DFusion();
-	_control_status.flags.mag_hdg = true;
+	if (!_control_status.flags.mag_hdg) {
+		stopMag3DFusion();
+		_control_status.flags.mag_hdg = true;
+	}
 }
 
 void Ekf::startMag3DFusion()
@@ -1456,14 +1459,6 @@ Vector3f Ekf::getVisionVelocityVarianceInEkfFrame() const
 	return ev_vel_cov.diag();
 }
 
-// update the rotation matrix which rotates EV measurements into the EKF's navigation frame
-void Ekf::calcExtVisRotMat()
-{
-	// Calculate the quaternion delta that rotates from the EV to the EKF reference frame at the EKF fusion time horizon.
-	const Quatf q_error((_state.quat_nominal * _ev_sample_delayed.quat.inversed()).normalized());
-	_R_ev_to_ekf = Dcmf(q_error);
-}
-
 // Increase the yaw error variance of the quaternions
 // Argument is additional yaw variance in rad**2
 void Ekf::increaseQuatYawErrVariance(float yaw_variance)
@@ -1551,9 +1546,8 @@ void Ekf::startGpsFusion()
 {
 	resetHorizontalPositionToGps();
 
-	// when using optical flow,
-	// velocity reset is not necessary
-	if (!_control_status.flags.opt_flow) {
+	// when using optical flow of vision velocity velocity reset is not necessary
+	if (!_control_status.flags.opt_flow && !_control_status.flags.ev_vel) {
 		resetVelocityToGps();
 	}
 
@@ -1572,10 +1566,6 @@ void Ekf::stopGpsFusion()
 	if (_control_status.flags.gps_yaw) {
 		stopGpsYawFusion();
 	}
-
-	// We do not need to know the true North anymore
-	// EV yaw can start again
-	_inhibit_ev_yaw_use = false;
 }
 
 void Ekf::stopGpsPosFusion()
@@ -1614,63 +1604,6 @@ void Ekf::startGpsYawFusion()
 void Ekf::stopGpsYawFusion()
 {
 	_control_status.flags.gps_yaw = false;
-}
-
-void Ekf::startEvPosFusion()
-{
-	_control_status.flags.ev_pos = true;
-	resetHorizontalPosition();
-	_information_events.flags.starting_vision_pos_fusion = true;
-	ECL_INFO("starting vision pos fusion");
-}
-
-void Ekf::startEvVelFusion()
-{
-	_control_status.flags.ev_vel = true;
-	resetVelocity();
-	_information_events.flags.starting_vision_vel_fusion = true;
-	ECL_INFO("starting vision vel fusion");
-}
-
-void Ekf::startEvYawFusion()
-{
-	// turn on fusion of external vision yaw measurements and disable all magnetometer fusion
-	_control_status.flags.ev_yaw = true;
-	_control_status.flags.mag_dec = false;
-
-	stopMagHdgFusion();
-	stopMag3DFusion();
-
-	_information_events.flags.starting_vision_yaw_fusion = true;
-	ECL_INFO("starting vision yaw fusion");
-}
-
-void Ekf::stopEvFusion()
-{
-	stopEvPosFusion();
-	stopEvVelFusion();
-	stopEvYawFusion();
-}
-
-void Ekf::stopEvPosFusion()
-{
-	_control_status.flags.ev_pos = false;
-	_ev_pos_innov.setZero();
-	_ev_pos_innov_var.setZero();
-	_ev_pos_test_ratio.setZero();
-}
-
-void Ekf::stopEvVelFusion()
-{
-	_control_status.flags.ev_vel = false;
-	_ev_vel_innov.setZero();
-	_ev_vel_innov_var.setZero();
-	_ev_vel_test_ratio.setZero();
-}
-
-void Ekf::stopEvYawFusion()
-{
-	_control_status.flags.ev_yaw = false;
 }
 
 void Ekf::stopAuxVelFusion()
@@ -1770,7 +1703,7 @@ bool Ekf::resetYawToEKFGSF()
 			_warning_events.flags.emergency_yaw_reset_gps_yaw_stopped = true;
 
 		} else if (_control_status.flags.ev_yaw) {
-			_inhibit_ev_yaw_use = true;
+			stopEvYawFusion();
 		}
 
 		ECL_WARN("Emergency yaw reset");

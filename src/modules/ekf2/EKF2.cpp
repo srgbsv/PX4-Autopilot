@@ -1166,7 +1166,7 @@ void EKF2::PublishStatus(const hrt_abstime &timestamp)
 	status.control_mode_flags = _ekf.control_status().value;
 	status.filter_fault_flags = _ekf.fault_status().value;
 
-	uint16_t innov_check_flags_temp = 0;
+	uint32_t innov_check_flags_temp = 0;
 	_ekf.get_innovation_test_status(innov_check_flags_temp, status.mag_test_ratio,
 					status.vel_test_ratio, status.pos_test_ratio,
 					status.hgt_test_ratio, status.tas_test_ratio,
@@ -1263,6 +1263,9 @@ void EKF2::PublishStatusFlags(const hrt_abstime &timestamp)
 		status_flags.cs_vehicle_at_rest       = _ekf.control_status_flags().vehicle_at_rest;
 		status_flags.cs_gps_yaw_fault         = _ekf.control_status_flags().gps_yaw_fault;
 		status_flags.cs_rng_fault             = _ekf.control_status_flags().rng_fault;
+		status_flags.cs_ev_pos_fault          = _ekf.control_status_flags().ev_pos_fault;
+		status_flags.cs_ev_vel_fault          = _ekf.control_status_flags().ev_vel_fault;
+		status_flags.cs_ev_yaw_fault          = _ekf.control_status_flags().ev_yaw_fault;
 
 		status_flags.fault_status_changes     = _filter_fault_status_changes;
 		status_flags.fs_bad_mag_x             = _ekf.fault_status_flags().bad_mag_x;
@@ -1283,6 +1286,13 @@ void EKF2::PublishStatusFlags(const hrt_abstime &timestamp)
 		status_flags.fs_bad_acc_bias          = _ekf.fault_status_flags().bad_acc_bias;
 		status_flags.fs_bad_acc_vertical      = _ekf.fault_status_flags().bad_acc_vertical;
 		status_flags.fs_bad_acc_clipping      = _ekf.fault_status_flags().bad_acc_clipping;
+		status_flags.fs_bad_ev_pos_x          = _ekf.fault_status_flags().bad_ev_pos_x;
+		status_flags.fs_bad_ev_pos_y          = _ekf.fault_status_flags().bad_ev_pos_y;
+		status_flags.fs_bad_ev_pos_z          = _ekf.fault_status_flags().bad_ev_pos_z;
+		status_flags.fs_bad_ev_vel_x          = _ekf.fault_status_flags().bad_ev_vel_x;
+		status_flags.fs_bad_ev_vel_y          = _ekf.fault_status_flags().bad_ev_vel_y;
+		status_flags.fs_bad_ev_vel_z          = _ekf.fault_status_flags().bad_ev_vel_z;
+		status_flags.fs_bad_ev_yaw            = _ekf.fault_status_flags().bad_ev_yaw;
 
 		status_flags.innovation_fault_status_changes = _innov_check_fail_status_changes;
 		status_flags.reject_hor_vel                  = _ekf.innov_check_fail_status_flags().reject_hor_vel;
@@ -1298,6 +1308,12 @@ void EKF2::PublishStatusFlags(const hrt_abstime &timestamp)
 		status_flags.reject_hagl                     = _ekf.innov_check_fail_status_flags().reject_hagl;
 		status_flags.reject_optflow_x                = _ekf.innov_check_fail_status_flags().reject_optflow_X;
 		status_flags.reject_optflow_y                = _ekf.innov_check_fail_status_flags().reject_optflow_Y;
+		status_flags.reject_ev_pos_x                 = _ekf.innov_check_fail_status_flags().reject_ev_pos_x;
+		status_flags.reject_ev_pos_y                 = _ekf.innov_check_fail_status_flags().reject_ev_pos_y;
+		status_flags.reject_ev_pos_z                 = _ekf.innov_check_fail_status_flags().reject_ev_pos_z;
+		status_flags.reject_ev_vel_x                 = _ekf.innov_check_fail_status_flags().reject_ev_vel_x;
+		status_flags.reject_ev_vel_y                 = _ekf.innov_check_fail_status_flags().reject_ev_vel_y;
+		status_flags.reject_ev_vel_z                 = _ekf.innov_check_fail_status_flags().reject_ev_vel_z;
 
 		status_flags.timestamp = _replay_mode ? timestamp : hrt_absolute_time();
 		_estimator_status_flags_pub.publish(status_flags);
