@@ -624,14 +624,22 @@ void NPFG::navigatePathTangent(const matrix::Vector2f &vehicle_pos, const matrix
 {
 	path_type_loiter_ = false;
 
-	// set unit tangent directly
-	unit_path_tangent_ = tangent_setpoint.normalized();
-
 	// closest point to vehicle
 	matrix::Vector2f error_vector = position_setpoint - vehicle_pos;
-	signed_track_error_ = cross2D(unit_path_tangent_, error_vector);
 
-	guideToPath(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_, curvature);
+	if (!PX4_ISFINITE(tangent_setpoint(0)) || !PX4_ISFINITE(tangent_setpoint(0))) {
+		//No valid unit path tangent
+		unit_path_tangent_ = -error_vector.normalized();
+		signed_track_error_ = error_vector.norm();
+		guideToPoint(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_);
+
+	} else {
+		// set unit tangent directly
+		float path_curvature = PX4_ISFINITE(curvature) ? curvature : 0.0f;
+		unit_path_tangent_ = tangent_setpoint.normalized();
+		signed_track_error_ = cross2D(unit_path_tangent_, error_vector);
+		guideToPath(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_, path_curvature);
+	}
 
 	updateRollSetpoint();
 } // navigatePathTangent

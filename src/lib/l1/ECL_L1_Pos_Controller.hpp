@@ -153,7 +153,7 @@ public:
 	 *
 	 * @return sets _lateral_accel setpoint
 	 */
-	void navigate_loiter(const matrix::Vector2d &vector_A, const matrix::Vector2d &vector_curr_position, float radius,
+	void navigate_loiter(const matrix::Vector2f &vector_A, const matrix::Vector2f &vector_curr_position, float radius,
 			     int8_t loiter_direction, const matrix::Vector2f &ground_speed_vector);
 
 	/**
