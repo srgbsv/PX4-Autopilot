@@ -81,6 +81,7 @@ TEST_F(EkfAirspeedTest, testWindVelocityEstimation)
 	_sensor_simulator.startExternalVision();
 
 	_ekf->set_in_air_status(true);
+	_ekf->set_vehicle_at_rest(false);
 	_ekf->set_is_fixed_wing(true);
 	_sensor_simulator.startAirspeedSensor();
 	_sensor_simulator._airspeed.setData(airspeed_body(0), airspeed_body(0));
@@ -110,6 +111,7 @@ TEST_F(EkfAirspeedTest, testWindVelocityEstimation)
 	float expected_height_difference = 0.5f * static_pressure_coef_xp * airspeed_body(0) * airspeed_body(
 			0) / CONSTANTS_ONE_G;
 
+	_ekf->set_vehicle_at_rest(false);
 	_sensor_simulator.runSeconds(20);
 
 	const float height_after_pressure_correction = _ekf->getPosition()(2);

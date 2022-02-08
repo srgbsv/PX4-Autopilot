@@ -100,7 +100,9 @@ public:
 		_sensor_simulator.startFlow();
 
 		_ekf->set_in_air_status(true);
-		_sensor_simulator.runSeconds(7);
+		_ekf->set_vehicle_at_rest(false);
+
+		_sensor_simulator.runSeconds(10);
 	}
 };
 
