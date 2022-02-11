@@ -582,11 +582,23 @@ void NPFG::navigatePathTangent(const matrix::Vector2f &vehicle_pos, const matrix
 	// closest point to vehicle
 	matrix::Vector2f error_vector = position_setpoint - vehicle_pos;
 
-	if (!PX4_ISFINITE(tangent_setpoint(0)) || !PX4_ISFINITE(tangent_setpoint(0))) {
+	if (!PX4_ISFINITE(tangent_setpoint(0)) || !PX4_ISFINITE(tangent_setpoint(1))) {
 		//No valid unit path tangent
 		unit_path_tangent_ = error_vector.normalized();
 		signed_track_error_ = error_vector.norm();
 		guideToPoint(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_);
+
+	} else if (!PX4_ISFINITE(error_vector(0)) || !PX4_ISFINITE(error_vector(1))) {
+		//No valid position setpoint, velocity reference
+		float bearing = matrix::wrap_pi(atan2f(tangent_setpoint(1), tangent_setpoint(0)));
+
+		unit_path_tangent_ = Vector2f{cosf(bearing), sinf(bearing)};
+
+		signed_track_error_ = 0.0f;
+
+		// no track error or path curvature to consider, just regulate ground velocity
+		// to bearing vector
+		guideToPath(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_, 0.0f);
 
 	} else {
 		// set unit tangent directly

@@ -354,6 +354,18 @@ private:
 	 * @return Vector2f Unit tangent vector of the reference line segment
 	 */
 	Vector2f	navigateWaypoints(const Vector2f &waypoint_A, const Vector2f &waypoint_B, const Vector2f &vehicle_pos);
+
+	/**
+	 * @brief Fixedwing Auto position flight mode. Vehicle tracks waypoints / path
+	 *
+	 * @param now current time
+	 * @param curr_pos vehicle current position
+	 * @param ground_speed vehicle ground speed
+	 * @param pos_sp_prev previous waypoint
+	 * @param pos_sp_curr current waypoint
+	 * @param pos_sp_next next waypoint
+	 * @param path_sp Reference path setpoint, pos_sp_prev, pos_sp_curr, pos_sp_next will be ignored if a path setpoint is provided
+	 */
 	void		control_auto(const hrt_abstime &now, const Vector2d &curr_pos, const Vector2f &ground_speed,
 				     const position_setpoint_s &pos_sp_prev,
 				     const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next, vehicle_local_path_setpoint_s &path_sp);
@@ -367,8 +379,6 @@ private:
 	vehicle_local_path_setpoint_s		control_auto_loiter(const hrt_abstime &now, const float dt, const Vector2d &curr_pos,
 			const Vector2f &ground_speed,
 			const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next);
-	vehicle_local_path_setpoint_s		control_auto_velocity(const hrt_abstime &now, const float dt,
-			const Vector2f &ground_speed, const position_setpoint_s &pos_sp_curr);
 	void		control_auto_takeoff(const hrt_abstime &now, const Vector2d &curr_pos,
 					     const Vector2f &ground_speed,
 					     const position_setpoint_s &pos_sp_prev,
