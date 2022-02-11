@@ -344,6 +344,16 @@ private:
 	 */
 	void		update_desired_altitude(float dt);
 	uint8_t		handle_setpoint_type(const uint8_t setpoint_type, const position_setpoint_s &pos_sp_curr);
+
+	/**
+	 * @brief Get unit tangent of line segments between waypoints
+	 *
+	 * @param waypoint_A Current waypoint local position
+	 * @param waypoint_B Previous waypoint local position
+	 * @param vehicle_pos Current vehicle local position
+	 * @return Vector2f Unit tangent vector of the reference line segment
+	 */
+	Vector2f	navigateWaypoints(const Vector2f &waypoint_A, const Vector2f &waypoint_B, const Vector2f &vehicle_pos);
 	void		control_auto(const hrt_abstime &now, const Vector2d &curr_pos, const Vector2f &ground_speed,
 				     const position_setpoint_s &pos_sp_prev,
 				     const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next, vehicle_local_path_setpoint_s &path_sp);
@@ -351,7 +361,7 @@ private:
 	void		control_auto_fixed_bank_alt_hold(const hrt_abstime &now);
 	void		control_auto_descend(const hrt_abstime &now);
 
-	vehicle_local_path_setpoint_s		control_auto_position(const hrt_abstime &now, const float dt, const Vector2d &curr_pos,
+	vehicle_local_path_setpoint_s		control_auto_position(const hrt_abstime &now, const float dt, const Vector2f &curr_pos,
 			const Vector2f &ground_speed,
 			const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
 	vehicle_local_path_setpoint_s		control_auto_loiter(const hrt_abstime &now, const float dt, const Vector2d &curr_pos,

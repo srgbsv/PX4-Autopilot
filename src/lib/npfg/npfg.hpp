@@ -228,8 +228,8 @@ public:
 	 * @param[in] ground_vel Vehicle ground velocity vector [m/s]
 	 * @param[in] wind_vel Wind velocity vector [m/s]
 	 */
-	void navigateWaypoints(const matrix::Vector2d &waypoint_A, const matrix::Vector2d &waypoint_B,
-			       const matrix::Vector2d &vehicle_pos, const matrix::Vector2f &ground_vel,
+	void navigateWaypoints(const matrix::Vector2f &waypoint_A, const matrix::Vector2f &waypoint_B,
+			       const matrix::Vector2f &vehicle_pos, const matrix::Vector2f &ground_vel,
 			       const matrix::Vector2f &wind_vel);
 
 	/*

@@ -518,8 +518,8 @@ float NPFG::lateralAccel(const Vector2f &air_vel, const Vector2f &air_vel_ref, c
  * PX4 NAVIGATION INTERFACE FUNCTIONS (provide similar functionality to ECL_L1_Pos_Controller)
  */
 
-void NPFG::navigateWaypoints(const Vector2d &waypoint_A, const Vector2d &waypoint_B,
-			     const Vector2d &vehicle_pos, const Vector2f &ground_vel, const Vector2f &wind_vel)
+void NPFG::navigateWaypoints(const Vector2f &waypoint_A, const Vector2f &waypoint_B,
+			     const Vector2f &vehicle_pos, const Vector2f &ground_vel, const Vector2f &wind_vel)
 {
 	// similar to logic found in ECL_L1_Pos_Controller method of same name
 	// BUT no arbitrary max approach angle, approach entirely determined by generated
@@ -527,8 +527,8 @@ void NPFG::navigateWaypoints(const Vector2d &waypoint_A, const Vector2d &waypoin
 
 	path_type_loiter_ = false;
 
-	Vector2f vector_A_to_B = getLocalPlanarVector(waypoint_A, waypoint_B);
-	Vector2f vector_A_to_vehicle = getLocalPlanarVector(waypoint_A, vehicle_pos);
+	Vector2f vector_A_to_B = waypoint_A - waypoint_B;
+	Vector2f vector_A_to_vehicle = waypoint_A - vehicle_pos;
 
 	if (vector_A_to_B.norm() < NPFG_EPSILON) {
 		// the waypoints are on top of each other and should be considered as a
@@ -573,51 +573,6 @@ void NPFG::navigateWaypoints(const Vector2d &waypoint_A, const Vector2d &waypoin
 	updateRollSetpoint();
 } // navigateWaypoints
 
-void NPFG::navigateLoiter(const Vector2d &loiter_center, const Vector2d &vehicle_pos,
-			  float radius, int8_t loiter_direction, const Vector2f &ground_vel, const Vector2f &wind_vel)
-{
-	path_type_loiter_ = true;
-
-	radius = math::max(radius, MIN_RADIUS);
-
-	Vector2f vector_center_to_vehicle = getLocalPlanarVector(loiter_center, vehicle_pos);
-	const float dist_to_center = vector_center_to_vehicle.norm();
-
-	// find the direction from the circle center to the closest point on its perimeter
-	// from the vehicle position
-	Vector2f unit_vec_center_to_closest_pt;
-
-	if (dist_to_center < 0.1f) {
-		// the logic breaks down at the circle center, employ some mitigation strategies
-		// until we exit this region
-		if (ground_vel.norm() < 0.1f) {
-			// arbitrarily set the point in the northern top of the circle
-			unit_vec_center_to_closest_pt = Vector2f{1.0f, 0.0f};
-
-		} else {
-			// set the point in the direction we are moving
-			unit_vec_center_to_closest_pt = ground_vel.normalized();
-		}
-
-	} else {
-		// set the point in the direction of the aircraft
-		unit_vec_center_to_closest_pt = vector_center_to_vehicle.normalized();
-	}
-
-	// 90 deg clockwise rotation * loiter direction
-	unit_path_tangent_ = float(loiter_direction) * Vector2f{-unit_vec_center_to_closest_pt(1), unit_vec_center_to_closest_pt(0)};
-
-	// positive in direction of path normal
-	signed_track_error_ = -loiter_direction * (dist_to_center - radius);
-
-	float path_curvature = float(loiter_direction) / radius;
-
-	guideToPath(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_, path_curvature);
-
-	updateRollSetpoint();
-} // navigateLoiter
-
-
 void NPFG::navigatePathTangent(const matrix::Vector2f &vehicle_pos, const matrix::Vector2f &position_setpoint,
 			       const matrix::Vector2f &tangent_setpoint,
 			       const matrix::Vector2f &ground_vel, const matrix::Vector2f &wind_vel, const float &curvature)
@@ -629,7 +584,7 @@ void NPFG::navigatePathTangent(const matrix::Vector2f &vehicle_pos, const matrix
 
 	if (!PX4_ISFINITE(tangent_setpoint(0)) || !PX4_ISFINITE(tangent_setpoint(0))) {
 		//No valid unit path tangent
-		unit_path_tangent_ = -error_vector.normalized();
+		unit_path_tangent_ = error_vector.normalized();
 		signed_track_error_ = error_vector.norm();
 		guideToPoint(ground_vel, wind_vel, unit_path_tangent_, signed_track_error_);
 
