@@ -197,6 +197,7 @@ private:
 	position_setpoint_s _hdg_hold_curr_wp {};		///< position to which heading hold flies
 
 	hrt_abstime _control_position_last_called{0};		///< last call of control_position
+	hrt_abstime _path_handler_last_called{0};		///< last call of pathHandler
 
 	bool _landed{true};
 
@@ -346,6 +347,22 @@ private:
 	uint8_t		handle_setpoint_type(const uint8_t setpoint_type, const position_setpoint_s &pos_sp_curr);
 
 	/**
+	 * @brief Generate path tracking setpoints from waypoints
+	 *
+	 * @param now current time
+	 * @param curr_pos vehicle current position
+	 * @param ground_speed vehicle ground speed [m/s]
+	 * @param pos_sp_prev previous waypoint
+	 * @param pos_sp_curr current waypoint
+	 * @param pos_sp_next next waypoint
+	 * @return vehicle_local_path_setpoint_s path setpoints
+	 */
+	vehicle_local_path_setpoint_s pathHandler(const hrt_abstime &now, const Vector2d &curr_pos,
+			const Vector2f &ground_speed,
+			const position_setpoint_s &pos_sp_prev,
+			const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next);
+
+	/**
 	 * @brief Get unit tangent of line segments between waypoints
 	 *
 	 * @param waypoint_A Current waypoint local position
@@ -359,24 +376,21 @@ private:
 	 * @brief Fixedwing Auto position flight mode. Vehicle tracks waypoints / path
 	 *
 	 * @param now current time
-	 * @param curr_pos vehicle current position
+	 * @param curr_pos vehicle current local position
 	 * @param ground_speed vehicle ground speed
-	 * @param pos_sp_prev previous waypoint
-	 * @param pos_sp_curr current waypoint
-	 * @param pos_sp_next next waypoint
+	 * @param cruising_throttle cruising throttle of current waypoint
 	 * @param path_sp Reference path setpoint, pos_sp_prev, pos_sp_curr, pos_sp_next will be ignored if a path setpoint is provided
 	 */
-	void		control_auto(const hrt_abstime &now, const Vector2d &curr_pos, const Vector2f &ground_speed,
-				     const position_setpoint_s &pos_sp_prev,
-				     const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next, vehicle_local_path_setpoint_s &path_sp);
+	void		control_auto(const hrt_abstime &now, const Vector2f &curr_pos, const Vector2f &ground_speed,
+				     const float &cruising_throttle, const vehicle_local_path_setpoint_s &path_sp);
 
 	void		control_auto_fixed_bank_alt_hold(const hrt_abstime &now);
 	void		control_auto_descend(const hrt_abstime &now);
 
-	vehicle_local_path_setpoint_s		control_auto_position(const hrt_abstime &now, const float dt, const Vector2f &curr_pos,
+	vehicle_local_path_setpoint_s		control_auto_position(const float dt, const Vector2f &curr_pos,
 			const Vector2f &ground_speed,
 			const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
-	vehicle_local_path_setpoint_s		control_auto_loiter(const hrt_abstime &now, const float dt, const Vector2d &curr_pos,
+	vehicle_local_path_setpoint_s		control_auto_loiter(const float dt, const Vector2d &curr_pos,
 			const Vector2f &ground_speed,
 			const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr, const position_setpoint_s &pos_sp_next);
 	void		control_auto_takeoff(const hrt_abstime &now, const Vector2d &curr_pos,
@@ -394,8 +408,7 @@ private:
 	float		get_tecs_thrust();
 
 	float		get_manual_airspeed_setpoint();
-	float		get_auto_airspeed_setpoint(const hrt_abstime &now, const float pos_sp_cru_airspeed,
-			const Vector2f &ground_speed, float dt);
+	float		get_auto_airspeed_setpoint(const float pos_sp_cru_airspeed, const Vector2f &ground_speed, float dt);
 
 	void		reset_takeoff_state(bool force = false);
 	void		reset_landing_state();
