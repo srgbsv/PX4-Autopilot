@@ -35,7 +35,7 @@ uint32 rx_packet_drop_count             # number of packet drops
 float32 rx_message_lost_rate
 
 
-uint64 HEARTBEAT_TIMEOUT_US = 1500000       # Heartbeat timeout 1.5 seconds
+uint64 HEARTBEAT_TIMEOUT_US = 2000000       # Heartbeat timeout 2 seconds
 
 # Heartbeats per type
 bool heartbeat_type_antenna_tracker         # MAV_TYPE_ANTENNA_TRACKER
